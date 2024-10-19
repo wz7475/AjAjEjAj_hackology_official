@@ -1,0 +1,23 @@
+[project]
+name = "hackology"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "K.Rożej, M.Szawerda, R.Szczepaniak, W.Zarzecki", email = "wojtek.zarzecki2002@gmail.com"},
+]
+dependencies = [
+    "shap>=0.46.0",
+    "jupyter>=1.1.1",
+    "matplotlib>=3.9.2",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+[tool.pdm]
+distribution = true
