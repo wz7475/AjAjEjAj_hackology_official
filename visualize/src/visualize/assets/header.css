@@ -1,0 +1,9 @@
+.responsive-layout {
+	display: flex;
+	flex-direction: row;
+}
+@media (max-width: 1000px) {
+	.responsive-layout {
+		flex-direction: column;
+	}
+}
