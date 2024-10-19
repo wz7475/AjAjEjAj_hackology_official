@@ -9,11 +9,23 @@ def add_noise(column, noise_factor=0.05):
     return column
 
 
-def add_gaussian_noise(column, mu=0, sigma=1):
-    if np.issubdtype(column.dtype, np.number):
-        noise = np.random.normal(mu, sigma, size=column.shape)
-        return column + noise
-    return column
+def add_gaussian_noise(column):
+    max_val = column.max()
+    min_val = column.min()
+    
+    # Desired median
+    desired_median = (max_val - min_val) / 2
+    
+    # Choose a standard deviation (adjust as necessary)
+    std_dev = desired_median / 3  # This sets the spread of the noise
+
+    # Generate Gaussian noise
+    noise = np.random.normal(loc=desired_median, scale=std_dev, size=column.shape)
+    
+    # Ensure no negative values after adding noise
+    noise = np.clip(noise, 0, None)  # Clip negative values to 0
+
+    return column + noise
 
 
 # Function to perturb categorical columns
@@ -29,7 +41,7 @@ if __name__ == "__main__":
     df = pd.read_json("../data/original_data.json", orient='columns')
     
     batch_size = 44
-    target_size = 3300
+    target_size = 2000
     current_size = df.shape[0]
     iterations = target_size // batch_size
 
@@ -40,17 +52,11 @@ if __name__ == "__main__":
     for i in range(1, iterations):
         # Duplicate the original 44 records
         df_new_batch = df.copy()
-
-        # Increase noise factor with each iteration
         # noise_factor = 0.05 * i
         # perturb_prob = 0.05 * i
-
-        sigma = 0.1 * i  # Start small and progressively increase the noise (standard deviation)
-        perturb_prob = 0.05 * i  # Increase the chance of perturbation for categorical columns
-
         # Apply noise to numerical columns
         for col in df_new_batch.select_dtypes(include=[np.number]).columns:
-            df_new_batch[col] = add_gaussian_noise(df_new_batch[col], mu=0, sigma=sigma)
+            df_new_batch[col] = add_gaussian_noise(df_new_batch[col])
 
         # Apply perturbation to categorical columns
         for col in df_new_batch.select_dtypes(include=['object']).columns:
