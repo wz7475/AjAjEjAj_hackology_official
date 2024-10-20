@@ -64,14 +64,6 @@ def create_card(icon_class, text, number, color):
 	)
 
 # Define four cards
-cards = html.Div([
-	dbc.Row([
-		dbc.Col(create_card("bi bi-graph-up", "Performance", "75%", "#007bff"), width=3),
-		dbc.Col(create_card("bi bi-cash", "Revenue", "$100K", "#28a745"), width=3),
-		dbc.Col(create_card("bi bi-people", "Users", "1,500", "#17a2b8"), width=3),
-		dbc.Col(create_card("bi bi-activity", "Engagement", "65%", "#ffc107"), width=3),
-	], justify="around")
-])
 app.layout = html.Div([
 	dbc.Row([
 		dbc.Row([
@@ -80,7 +72,7 @@ app.layout = html.Div([
 				dcc.Dropdown(products, products[0], id='product-selection')]),
 			dbc.Col(dcc.DatePickerRange()),
 		], justify="between", align='end'),
-		dbc.Row(cards, className='gy-2'),
+		dbc.Row(id='cards-id', className='gy-2'),
 	]),
 	dbc.Row(id='best-values')
 ], style={'padding': '1% 5%'})
@@ -106,6 +98,23 @@ def update_graph(col_chosen):
 				dbc.Col(graphs[3])
 			]),
 		])
+	])
+
+@callback(
+	Output(component_id='cards-id', component_property='children'),
+	Input(component_id='product-selection', component_property='value')
+)
+def update_graph(col_chosen):
+	data = get_data_as_df(DATA[col_chosen])
+	res=data.loc[data.groupby('category')['value'].idxmax(), ['category', 'subcategory']]
+	res=res.set_index('category')['subcategory'].to_dict()
+	return html.Div([
+		dbc.Row([
+			dbc.Col(create_card("bi bi-people", "Wiek", res.get('age'), "#007bff"), width=3),
+			dbc.Col(create_card("bi bi-cash", "POI", res.get('poi'), "#28a745"), width=3),
+			dbc.Col(create_card("bi bi-people", "Users", "1,500", "#17a2b8"), width=3),
+			dbc.Col(create_card("bi bi-activity", "Engagement", "65%", "#ffc107"), width=3),
+		], justify="around")
 	])
 
 if __name__ == '__main__':

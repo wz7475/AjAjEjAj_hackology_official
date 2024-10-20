@@ -79,10 +79,12 @@ def create_bar_plot(df: pd.DataFrame, category: str) -> go.Figure:
 	return fig
 
 def geo_plot():
-	df_geo = pd.read_json('../data/shop_data_merged.json')
-	# limits = [(0,3),(3,11),(11,21),(21,50),(50,3000)]
-	colors = ["royalblue","crimson","lightseagreen","orange","lightgrey"]
-	scale = 50
+	df_1=pd.read_csv("../data/merged_data.csv", index_col=0)[['lon', 'lat']]
+	df_2=pd.read_csv("../data/product1.csv", index_col=0)
+	df_geo=df_2.join(df_1, how='right').rename({'0':'y'}, axis=1)
+	limits = [(0,500),(500,1000),(1000,1500),(1500,2000),(2000,300000)]
+	colors = ["royalblue","lightseagreen", "orange", "crimson", "lightgrey"]
+	scale = 100
 
 	fig = go.Figure(go.Choropleth(
 		locations=['POL'],
@@ -92,17 +94,20 @@ def geo_plot():
 		showscale=False
 	))
 
-
-	fig.add_trace(go.Scattergeo(
-		lon = df_geo['lon'],
-		lat = df_geo['lat'],
-		marker = dict(
-			size = df_geo['apts_r'].fillna(0)/scale,
-			color = colors[0],
-			line_color='rgb(40,40,40)',
-			line_width=0.5,
-			sizemode = 'area'
-	)))
+	for i, lim in enumerate(limits):
+		df_sub = df_geo[lim[0]:lim[1]]
+		fig.add_trace(go.Scattergeo(
+			lon = df_sub['lon'],
+			lat = df_sub['lat'],
+			marker = dict(
+				size = df_sub['y'].fillna(0)/scale,
+				color = colors[i],
+				line_color='rgb(40,40,40)',
+				line_width=0.5,
+				sizemode = 'area'
+		),
+		name = '{0} - {1}'.format(lim[0],lim[1]))
+		)
 
 	fig.update_geos(
 		visible=False,
