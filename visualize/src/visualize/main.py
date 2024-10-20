@@ -4,24 +4,25 @@ import pandas as pd
 import plotly.express as px
 import dash_bootstrap_components as dbc
 from data import get_data_as_df, DATA, get_max_value_keys
-from plots import create_spider_plot, create_bar_plot
+from plots import create_spider_plot, create_bar_plot,geo_plot
 
 product_choice = 'Juice'
 
 app = Dash(__name__, external_stylesheets=[
-	"https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+	dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME,
+	"https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
 ])
 categories = ['age', 'poi']
 products = ['Juice', 'Apples', 'Snackbar']
 
-def graph_plot(data, category: str)->html.Div:
+def graph_plot(data, category: str)->dcc.Graph:
 	is_multi = len(data[data['category']==category]['subcategory'].unique()) > 2
-	return html.Div([
-		dcc.Graph(
+	# return html.Div([
+	return dcc.Graph(
 			figure=create_spider_plot(data, category) if is_multi else create_bar_plot(data, category),
-		),
-		html.Div(category.capitalize().replace("_", " "))
-	], style={'textAlign': 'center', 'margin': '0 auto'})
+		)
+		# html.Div(category.capitalize().replace("_", " "))
+	# ], style={'textAlign': 'center', 'margin': '0 auto'})
 
 def target_description(data):
 	return f'''
@@ -33,39 +34,79 @@ def target_description(data):
 				)
 	}
 '''
+def create_card(icon_class, text, number, color):
+	return dbc.Card(
+		[
+			dbc.Row(
+				[
+					dbc.Col(
+						html.I(className=icon_class, style={"color": color, 'font-size': '4rem'}),
+						className="d-flex justify-content-center align-items-center",
+					),
+					dbc.Col(
+						dbc.CardBody(
+							[
+								html.H4(text, className="card-title"),
+								html.P(
+									number,
+									className="card-text",
+								),
+							]
+						),
+						className="col-md-8",
+					),
+				],
+				className="g-0 d-flex align-items-center",
+			)
+		],
+		className="mb-3",
+		style={"maxWidth": "540px"},
+	)
 
+# Define four cards
+cards = html.Div([
+	dbc.Row([
+		dbc.Col(create_card("bi bi-graph-up", "Performance", "75%", "#007bff"), width=3),
+		dbc.Col(create_card("bi bi-cash", "Revenue", "$100K", "#28a745"), width=3),
+		dbc.Col(create_card("bi bi-people", "Users", "1,500", "#17a2b8"), width=3),
+		dbc.Col(create_card("bi bi-activity", "Engagement", "65%", "#ffc107"), width=3),
+	], justify="around")
+])
 app.layout = html.Div([
-	html.Div([
-		html.Label('Products'),
-		dcc.Dropdown(products, products[0], id='product-selection'),
-		html.Br(),
-		dcc.DatePickerRange(),
-	], style={'justify-content':'center'}),
-	html.Div(id='best-values')
+	dbc.Row([
+		dbc.Row([
+			dbc.Col([
+				dbc.Label('Product'),
+				dcc.Dropdown(products, products[0], id='product-selection')]),
+			dbc.Col(dcc.DatePickerRange()),
+		], justify="between", align='end'),
+		dbc.Row(cards, className='gy-2'),
+	]),
+	dbc.Row(id='best-values')
+], style={'padding': '1% 5%'})
 
-
-], style={'padding': '0 5%'})
-
-# Adding custom scrollbar CSS
-# # Add controls to build the interaction
 @callback(
 	Output(component_id='best-values', component_property='children'),
 	Input(component_id='product-selection', component_property='value')
 )
 def update_graph(col_chosen):
 	data = get_data_as_df(DATA[col_chosen])
-	return html.Div([
-		html.Div(children=[
-			dcc.Markdown(target_description(DATA[col_chosen])),
-		], style={'padding': 10, 'flex': 1}),
+	graphs = [graph_plot(data, category) for category in data['category'].unique()]
+	return dbc.Row([
+		dbc.Col([dcc.Graph(
+			figure=geo_plot()
+		),]),
+		dbc.Col([
+			dbc.Row([
+				dbc.Col(graphs[0]),
+				dbc.Col(graphs[1])
+			]),
+			dbc.Row([
+				dbc.Col(graphs[2]),
+				dbc.Col(graphs[3])
+			]),
+		])
+	])
 
-		html.Div(children=[
-			graph_plot(data, category) for category in data['category'].unique()
-		], style={'padding': 0, 'flex': 2, 'display': 'grid', 'grid-template-columns': 'auto auto'})
-	],
-		# style={'display': 'flex', 'flexDirection': 'row', },
-		className='responsive-layout')
-
-# Run the app
 if __name__ == '__main__':
 	app.run(debug=True)
