@@ -79,41 +79,43 @@ def create_bar_plot(df: pd.DataFrame, category: str) -> go.Figure:
 	return fig
 
 def geo_plot():
-	df_geo = pd.DataFrame({
-		'name': ['Warsaw', 'Krakow', 'Gdansk', 'Wroclaw'],
-		'pop': [1.7e6, 0.77e6, 0.46e6, 0.64e6],
-		'lon': [21.0122, 19.945, 18.6466, 17.0385],
-		'lat': [52.2297, 50.0647, 54.3520, 51.1079]
-	})
-	df_geo['text'] = df_geo['name'] + '<br>Population ' + (df_geo['pop']/1e6).astype(str)+' million'
-	limits = [(0,3),(3,11),(11,21),(21,50),(50,3000)]
+	df_geo = pd.read_json('../data/shop_data_merged.json')
+	# limits = [(0,3),(3,11),(11,21),(21,50),(50,3000)]
 	colors = ["royalblue","crimson","lightseagreen","orange","lightgrey"]
-	scale = 5000
+	scale = 50
 
-	fig = go.Figure()
+	fig = go.Figure(go.Choropleth(
+		locations=['POL'],
+		z=[1],
+		locationmode='ISO-3',
+		colorscale='Greys',
+		showscale=False
+	))
 
-	for i in range(len(limits)):
-		lim = limits[i]
-		df_sub = df_geo[lim[0]:lim[1]]
-		fig.add_trace(go.Scattergeo(
-			lon = df_sub['lon'],
-			lat = df_sub['lat'],
-			text = df_sub['text'],
-			marker = dict(
-				size = df_sub['pop']/scale,
-				color = colors[i],
-				line_color='rgb(40,40,40)',
-				line_width=0.5,
-				sizemode = 'area'
-			),
-			name = '{0} - {1}'.format(lim[0],lim[1])))
+
+	fig.add_trace(go.Scattergeo(
+		lon = df_geo['lon'],
+		lat = df_geo['lat'],
+		marker = dict(
+			size = df_geo['apts_r'].fillna(0)/scale,
+			color = colors[0],
+			line_color='rgb(40,40,40)',
+			line_width=0.5,
+			sizemode = 'area'
+	)))
+
+	fig.update_geos(
+		visible=False,
+		projection_type="mercator",
+		lataxis_range=[49, 55],
+		lonaxis_range=[14, 24],
+	)
 
 	fig.update_layout(
-		title_text = '2014 US city populations<br>(Click legend to toggle traces)',
+		title_text = 'Poland',
 		showlegend = True,
 		geo = dict(
 			scope = 'europe',
-			landcolor = 'rgb(217, 217, 217)',
 		)
 	)
 	return fig
