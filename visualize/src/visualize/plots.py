@@ -3,6 +3,7 @@ import plotly.express as px
 import plotly.graph_objects
 import plotly.graph_objects as go
 FIG_WIDTH = 300
+
 def create_spider_plot(df: pd.DataFrame, category: str) ->plotly.graph_objects.Figure:
 	filtered_data = df[df['category'] == category]
 	fig = go.Figure()
@@ -76,3 +77,46 @@ def create_bar_plot(df: pd.DataFrame, category: str) -> go.Figure:
 	)
 
 	return fig
+
+def geo_plot():
+	df_geo = pd.read_json('../data/shop_data_merged.json')
+	# limits = [(0,3),(3,11),(11,21),(21,50),(50,3000)]
+	colors = ["royalblue","crimson","lightseagreen","orange","lightgrey"]
+	scale = 50
+
+	fig = go.Figure(go.Choropleth(
+		locations=['POL'],
+		z=[1],
+		locationmode='ISO-3',
+		colorscale='Greys',
+		showscale=False
+	))
+
+
+	fig.add_trace(go.Scattergeo(
+		lon = df_geo['lon'],
+		lat = df_geo['lat'],
+		marker = dict(
+			size = df_geo['apts_r'].fillna(0)/scale,
+			color = colors[0],
+			line_color='rgb(40,40,40)',
+			line_width=0.5,
+			sizemode = 'area'
+	)))
+
+	fig.update_geos(
+		visible=False,
+		projection_type="mercator",
+		lataxis_range=[49, 55],
+		lonaxis_range=[14, 24],
+	)
+
+	fig.update_layout(
+		title_text = 'Poland',
+		showlegend = True,
+		geo = dict(
+			scope = 'europe',
+		)
+	)
+	return fig
+
