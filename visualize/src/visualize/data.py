@@ -22,7 +22,8 @@ def gen_data():
 	},
 	'localization_type': {
 		'city': random(),
-		'town': random()
+		'town': random(),
+		'city-town': random(),
 	}
 }
 
