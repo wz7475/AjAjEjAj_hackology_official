@@ -118,7 +118,7 @@ def geo_plot(y_path: str):
 	)
 
 	fig.update_layout(
-		title_text = 'Poland',
+		title_text = 'Sprzedaż w przeliczenie na osobę',
 		showlegend = True,
 		geo = dict(
 			scope = 'europe',
